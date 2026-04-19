@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import emailjs from "@emailjs/browser";
 
 function useFadeUp(ref) {
   useEffect(() => {
@@ -74,28 +75,45 @@ function SocialLink({ label, href }) {
   );
 }
 
-function ContactForm({ onSubmit }) {
+function ContactForm({ onSuccess }) {
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState(null);
+  const formRef = useRef(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+    setError(null);
+    console.log("Sending with:", process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID, process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY);
+    try {
+      await emailjs.sendForm(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+        formRef.current,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+      );
+      onSuccess();
+    } catch (err) {
+      console.error("EmailJS error:", err);
+      setError("Something went wrong. Please email athugz.21@gmail.com directly.");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
-    <form onSubmit={onSubmit}>
+    <form ref={formRef} onSubmit={handleSubmit}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <div>
           <label style={labelStyle}>Name</label>
-          <input
-            type="text"
-            placeholder="Your name"
-            style={inputStyle}
-            required
+          <input name="from_name" type="text" placeholder="Your name" style={inputStyle} required
             onFocus={(e) => { e.target.style.borderColor = "rgba(200,245,90,0.4)"; }}
             onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
           />
         </div>
         <div>
           <label style={labelStyle}>Email</label>
-          <input
-            type="email"
-            placeholder="your@email.com"
-            style={inputStyle}
-            required
+          <input name="from_email" type="email" placeholder="your@email.com" style={inputStyle} required
             onFocus={(e) => { e.target.style.borderColor = "rgba(200,245,90,0.4)"; }}
             onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
           />
@@ -104,8 +122,7 @@ function ContactForm({ onSubmit }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
         <div>
           <label style={labelStyle}>Project type</label>
-          <select
-            style={{ ...inputStyle, cursor: "pointer" }}
+          <select name="project_type" style={{ ...inputStyle, cursor: "pointer" }}
             onFocus={(e) => { e.target.style.borderColor = "rgba(200,245,90,0.4)"; }}
             onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
           >
@@ -120,8 +137,7 @@ function ContactForm({ onSubmit }) {
         </div>
         <div>
           <label style={labelStyle}>Budget range</label>
-          <select
-            style={{ ...inputStyle, cursor: "pointer" }}
+          <select name="budget" style={{ ...inputStyle, cursor: "pointer" }}
             onFocus={(e) => { e.target.style.borderColor = "rgba(200,245,90,0.4)"; }}
             onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
           >
@@ -135,7 +151,7 @@ function ContactForm({ onSubmit }) {
       </div>
       <div style={{ marginBottom: 16 }}>
         <label style={labelStyle}>About your project</label>
-        <textarea
+        <textarea name="message"
           placeholder="Brief description of what you need, timeline, and any other details..."
           rows={5}
           style={{ ...inputStyle, resize: "vertical" }}
@@ -143,25 +159,24 @@ function ContactForm({ onSubmit }) {
           onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
         />
       </div>
-      <button
-        type="submit"
-        style={{
-          width: "100%",
-          fontFamily: "var(--font-body)",
-          fontSize: 14,
-          fontWeight: 500,
-          color: "var(--bg)",
-          background: "var(--accent)",
-          border: "none",
-          borderRadius: 10,
-          padding: "14px",
-          cursor: "pointer",
-          transition: "background 0.2s",
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--accent2)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = "var(--accent)"; }}
-      >
-        Send inquiry
+      {error && (
+        <p style={{ fontSize: 13, color: "#f5905a", marginBottom: 12 }}>{error}</p>
+      )}
+      <button type="submit" disabled={sending} style={{
+        width: "100%",
+        fontFamily: "var(--font-body)",
+        fontSize: 14,
+        fontWeight: 500,
+        color: "var(--bg)",
+        background: sending ? "var(--accent2)" : "var(--accent)",
+        border: "none",
+        borderRadius: 10,
+        padding: "14px",
+        cursor: sending ? "not-allowed" : "pointer",
+        transition: "background 0.2s",
+        opacity: sending ? 0.8 : 1,
+      }}>
+        {sending ? "Sending..." : "Send inquiry"}
       </button>
     </form>
   );
@@ -181,11 +196,10 @@ export default function Contact() {
   };
 
   const socialLinks = [
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/alejandrobillote/" },
-  { label: "GitHub", href: "https://github.com/alejandrobillote21" },
-  { label: "Upwork", href: "https://www.upwork.com/freelancers/~017fa37e4e7330eb3d?mp_source=share" },
-  { label: "Behance", href: "https://behance.net/" },
-];
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/alejandrobillote/" },
+    { label: "GitHub", href: "https://github.com/alejandrobillote21" },
+    { label: "Upwork", href: "https://www.upwork.com/freelancers/~017fa37e4e7330eb3d?mp_source=share" },
+  ];
 
   return (
     <section id="contact" style={{ padding: "100px 48px" }}>
@@ -215,7 +229,7 @@ export default function Contact() {
               </p>
             </div>
           ) : (
-            <ContactForm onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} />
+            <ContactForm onSuccess={() => setSubmitted(true)} />
           )}
         </div>
         <div ref={rightRef} style={{ ...fadeStyle, transitionDelay: "0.15s", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -226,13 +240,12 @@ export default function Contact() {
             <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 16, lineHeight: 1.6 }}>
               Prefer talking over typing? Let us hop on a quick call — no commitment.
             </p>
-            <button
-              style={{ fontSize: 13, fontWeight: 500, color: "var(--text)", border: "1px solid var(--border2)", borderRadius: 40, padding: "10px 20px", background: "transparent", cursor: "pointer", transition: "all 0.2s", fontFamily: "var(--font-body)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface2)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            <a href="https://calendly.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 500, color: "var(--text)", border: "1px solid var(--border2)", borderRadius: 40, padding: "10px 20px", background: "transparent", cursor: "pointer", transition: "all 0.2s", fontFamily: "var(--font-body)", textDecoration: "none" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--surface)"; e.currentTarget.style.borderColor = "var(--text2)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "var(--border2)"; }}
             >
               Book via Calendly
-            </button>
+            </a>
           </div>
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 24 }}>
             <p style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, color: "var(--text)", marginBottom: 14 }}>
@@ -254,4 +267,3 @@ export default function Contact() {
     </section>
   );
 }
-

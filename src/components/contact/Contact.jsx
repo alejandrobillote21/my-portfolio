@@ -181,11 +181,11 @@ export default function Contact() {
   };
 
   const socialLinks = [
-    { label: "LinkedIn", href: "https://linkedin.com" },
-    { label: "GitHub", href: "https://github.com" },
-    { label: "Behance", href: "https://behance.net" },
-    { label: "Upwork", href: "https://upwork.com" },
-  ];
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/alejandrobillote/" },
+  { label: "GitHub", href: "https://github.com/alejandrobillote21" },
+  { label: "Upwork", href: "https://www.upwork.com/freelancers/~017fa37e4e7330eb3d?mp_source=share" },
+  { label: "Behance", href: "https://behance.net/" },
+];
 
   return (
     <section id="contact" style={{ padding: "100px 48px" }}>
